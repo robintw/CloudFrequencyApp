@@ -19,7 +19,9 @@ trendy.boot = function(eeMapId, eeToken, serializedPolygonIds) {
   // Load external libraries.
   google.load('visualization', '1.0');
   google.load('jquery', '1');
-  google.load('maps', '3');
+  google.load('maps', '3', {other_params:'libraries=places'});
+
+
 
   // Create the Trendy Lights app.
   google.setOnLoadCallback(function() {
@@ -54,6 +56,64 @@ trendy.App = function(mapType, polygonIds) {
 
   // Register a click handler to show a panel when the user clicks on a place.
   google.maps.event.addListener(trendy.map, 'click', this.handleClick);
+
+  var markers = [];
+
+    // Create the search box and link it to the UI element.
+  var input = /** @type {HTMLInputElement} */(
+      document.getElementById('pac-input'));
+  trendy.map.controls[google.maps.ControlPosition.TOP_LEFT].push(input);
+
+  var searchBox = new google.maps.places.SearchBox(
+    /** @type {HTMLInputElement} */(input));
+
+  // Listen for the event fired when the user selects an item from the
+  // pick list. Retrieve the matching places for that item.
+  google.maps.event.addListener(searchBox, 'places_changed', function() {
+    var places = searchBox.getPlaces();
+
+    if (places.length == 0) {
+      return;
+    }
+    for (var i = 0, marker; marker = markers[i]; i++) {
+      marker.setMap(null);
+    }
+
+    // For each place, get the icon, place name, and location.
+    markers = [];
+    var bounds = new google.maps.LatLngBounds();
+    for (var i = 0, place; place = places[i]; i++) {
+      var image = {
+        url: place.icon,
+        size: new google.maps.Size(71, 71),
+        origin: new google.maps.Point(0, 0),
+        anchor: new google.maps.Point(17, 34),
+        scaledSize: new google.maps.Size(25, 25)
+      };
+
+      // Create a marker for each place.
+      var marker = new google.maps.Marker({
+        map: trendy.map,
+        icon: image,
+        title: place.name,
+        position: place.geometry.location
+      });
+
+      markers.push(marker);
+
+      bounds.extend(place.geometry.location);
+    }
+
+    trendy.map.fitBounds(bounds);
+  });
+
+  // Bias the SearchBox results towards places that are within the bounds of the
+  // current map's viewport.
+  google.maps.event.addListener(trendy.map, 'bounds_changed', function() {
+    var bounds = trendy.map.getBounds();
+    searchBox.setBounds(bounds);
+  });
+
 
   // Register a click handler to hide the panel when the user clicks close.
   $('.panel .close').click(this.hidePanel.bind(this));
@@ -109,13 +169,19 @@ trendy.App.prototype.createMap = function(mapType) {
   var mapOptions = {
     backgroundColor: '#000000',
     center: trendy.App.DEFAULT_CENTER,
-    disableDefaultUI: true,
+    //disableDefaultUI: true,
+    streetViewControl: false,
+    mapTypeControl: false,
+    maxZoom: 10,
     zoom: trendy.App.DEFAULT_ZOOM
   };
   var mapEl = $('.map').get(0);
   var map = new google.maps.Map(mapEl, mapOptions);
   //map.setOptions({styles: trendy.App.BLACK_BASE_MAP_STYLES});
   map.overlayMapTypes.push(mapType);
+
+
+
   return map;
 };
 
