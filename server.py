@@ -104,11 +104,24 @@ class DetailsHandler(webapp2.RequestHandler):
     self.response.headers['Content-Type'] = 'application/json'
     self.response.out.write(content)
 
+class TimeSeriesHandler(webapp2.RequestHandler):
+  """A servlet to handle requests for details about a Polygon."""
+
+  def get(self):
+    """Returns details about a polygon."""
+    lat = self.request.get('lat')
+    lon = self.request.get('lon')
+    content = GetTimeSeriesAtPoint(lat, lon)
+    print(content)
+    #self.response.headers['Content-Type'] = 'application/json'
+    self.response.out.write(content)
+
 
 # Define webapp2 routing from URL paths to web request handlers. See:
 # http://webapp-improved.appspot.com/tutorials/quickstart.html
 app = webapp2.WSGIApplication([
     ('/details', DetailsHandler),
+    ('/timeseries', TimeSeriesHandler),
     ('/', MainHandler),
 ])
 
@@ -149,6 +162,32 @@ def GetValueAtPoint(lat, lon):
   res = cloudiness.reduceRegion(ee.Reducer.mean(), g, REDUCTION_SCALE_METERS)
 
   return json.dumps(res.getInfo())
+
+def GetTimeSeriesAtPoint(lat, lon):
+    startdate = "2015-01-01"
+    stopdate = "2015-12-31"
+
+    def f(img):
+        newimg = img.select(['state_1km']).expression("((b(0))%4)==1|((b(0))%4)==2")
+        newimg = newimg.set('system:time_start', img.get('system:time_start'))
+        return newimg
+
+    mod09 = ee.ImageCollection("MOD09GA").filterDate(ee.Date(startdate), ee.Date(stopdate)).map(f)
+
+    month_list = ee.List.sequence(1,12)
+    #year_list = ee.List.sequence(2010, 2015)
+
+    def fmonth_map(mnz):
+        w = mod09.filter(ee.Filter.calendarRange(2015, 2015, 'year')).filter(ee.Filter.calendarRange(mnz, mnz, 'month')).mean()
+        w = w.set('year', 2015)
+        w = w.set('month', mnz)
+        w = w.set('date', ee.Date.fromYMD(2015, mnz, 1))
+        w = w.set('system:time_start', ee.Date.fromYMD(2015, mnz, 1))
+        return w
+
+    result = ee.ImageCollection.fromImages(month_list.map(fmonth_map)).flatten()
+
+    return ee.Chart.image.series(result, geometry, ee.Reducer.mean(), 1000)
 
 
 def GetPolygonTimeSeries(polygon_id):

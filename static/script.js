@@ -117,13 +117,13 @@ trendy.App = function(mapType, polygonIds) {
   function deselect(e) {
   $('.pop').slideFadeToggle(function() {
     e.removeClass('selected');
-  });    
+  });
 }
 
 $(function() {
   $('#info').on('click', function() {
     if($(this).hasClass('selected')) {
-      deselect($(this));               
+      deselect($(this));
     } else {
       $(this).addClass('selected');
       $('.pop').slideFadeToggle();
@@ -152,11 +152,11 @@ $.fn.slideFadeToggle = function(easing, callback) {
 };
 
 trendy.App.prototype.handleClick = function(event) {
-  console.log(event.latLng)
-  var lat = event.latLng.A
-  var lon = event.latLng.F
-  var url = '/details?lat=' + lat + '&lon=' + lon
-  $.get('/details?lat=' + event.latLng.A + '&lon=' + event.latLng.F).done((function(data) {
+  var lat = event.latLng.lat();
+  var lon = event.latLng.lng();
+  var url = '/details?lat=' + lat + '&lon=' + lon;
+  console.log(url);
+  $.get(url).done((function(data) {
     console.log(data.state_1km_mean)
 
 
