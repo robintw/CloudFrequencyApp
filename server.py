@@ -136,8 +136,8 @@ def GetTrendyMapId():
 
   """Returns the MapID for the night-time lights trend map."""
 
-  startdate="2012-01-01"
-  stopdate="2012-12-31"
+  startdate="2017-01-01"
+  stopdate="2017-12-31"
   collection = ee.ImageCollection("MOD09GA").filterDate(ee.Date(startdate), stopdate)
 
   collection = collection.map(lambda img: img.select('state_1km').expression("((b(0))%4)==1|((b(0))%4)==2"))
