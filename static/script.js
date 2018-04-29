@@ -1,21 +1,21 @@
 /**
- * @fileoverview Runs the Trendy Lights application. The code is executed in the
+ * @fileoverview Runs the Cloud Frequency application. The code is executed in the
  * user's browser. It communicates with the App Engine backend, renders output
  * to the screen, and handles user interactions.
  */
 
 
-trendy = {};  // Our namespace.
+cloudfrequency = {};  // Our namespace.
 
 
 /**
- * Starts the Trendy Lights application. The main entry point for the app.
+ * Starts the Cloud Frequency application. The main entry point for the app.
  * @param {string} eeMapId The Earth Engine map ID.
  * @param {string} eeToken The Earth Engine map token.
  * @param {string} serializedPolygonIds A serialized array of the IDs of the
  *     polygons to show on the map. For example: "['poland', 'moldova']".
  */
-trendy.boot = function(eeMapId, eeToken, serializedPolygonIds) {
+cloudfrequency.boot = function(eeMapId, eeToken, serializedPolygonIds) {
   // Load external libraries.
   google.load('visualization', '1.0');
   google.load('jquery', '1');
@@ -25,8 +25,8 @@ trendy.boot = function(eeMapId, eeToken, serializedPolygonIds) {
 
   // Create the Trendy Lights app.
   google.setOnLoadCallback(function() {
-    var mapType = trendy.App.getEeMapType(eeMapId, eeToken);
-    var app = new trendy.App(mapType, JSON.parse(serializedPolygonIds));
+    var mapType = cloudfrequency.App.getEeMapType(eeMapId, eeToken);
+    var app = new cloudfrequency.App(mapType, JSON.parse(serializedPolygonIds));
   });
 };
 
@@ -38,31 +38,27 @@ trendy.boot = function(eeMapId, eeToken, serializedPolygonIds) {
 
 
 /**
- * The main Trendy Lights application.
+ * The main Cloud Frequency application.
  * This constructor renders the UI and sets up event handling.
  * @param {google.maps.ImageMapType} mapType The map type to render on the map.
  * @param {Array<string>} polygonIds The IDs of the polygons to show on the map.
  *     For example ['poland', 'moldova'].
  * @constructor
  */
-trendy.App = function(mapType, polygonIds) {
+cloudfrequency.App = function(mapType, polygonIds) {
   // Create and display the map.
   this.map = this.createMap(mapType);
-  trendy.map = this.map;
-
-
-  // Add the polygons to the map.
-  // this.addPolygons(polygonIds);
+  cloudfrequency.map = this.map;
 
   // Register a click handler to show a panel when the user clicks on a place.
-  google.maps.event.addListener(trendy.map, 'click', this.handleClick);
+  google.maps.event.addListener(cloudfrequency.map, 'click', this.handleClick);
 
   var markers = [];
 
     // Create the search box and link it to the UI element.
   var input = /** @type {HTMLInputElement} */(
       document.getElementById('pac-input'));
-  trendy.map.controls[google.maps.ControlPosition.TOP_LEFT].push(input);
+  cloudfrequency.map.controls[google.maps.ControlPosition.TOP_LEFT].push(input);
 
   var searchBox = new google.maps.places.SearchBox(
     /** @type {HTMLInputElement} */(input));
@@ -93,7 +89,7 @@ trendy.App = function(mapType, polygonIds) {
 
       // Create a marker for each place.
       var marker = new google.maps.Marker({
-        map: trendy.map,
+        map: cloudfrequency.map,
         icon: image,
         title: place.name,
         position: place.geometry.location
@@ -104,13 +100,13 @@ trendy.App = function(mapType, polygonIds) {
       bounds.extend(place.geometry.location);
     }
 
-    trendy.map.fitBounds(bounds);
+    cloudfrequency.map.fitBounds(bounds);
   });
 
   // Bias the SearchBox results towards places that are within the bounds of the
   // current map's viewport.
-  google.maps.event.addListener(trendy.map, 'bounds_changed', function() {
-    var bounds = trendy.map.getBounds();
+  google.maps.event.addListener(cloudfrequency.map, 'bounds_changed', function() {
+    var bounds = cloudfrequency.map.getBounds();
     searchBox.setBounds(bounds);
   });
 
@@ -151,7 +147,7 @@ $.fn.slideFadeToggle = function(easing, callback) {
   }).bind(this));
 };
 
-trendy.App.prototype.handleClick = function(event) {
+cloudfrequency.App.prototype.handleClick = function(event) {
   var lat = event.latLng.lat();
   var lon = event.latLng.lng();
   var url = '/details?lat=' + lat + '&lon=' + lon;
@@ -167,7 +163,7 @@ trendy.App.prototype.handleClick = function(event) {
     var myLatlng = new google.maps.LatLng(lat,lon);
 
     infowindow.setPosition(myLatlng);
-    infowindow.open(trendy.map);
+    infowindow.open(cloudfrequency.map);
 
   }).bind(this));
 
@@ -192,19 +188,19 @@ trendy.App.prototype.handleClick = function(event) {
  * @param {google.maps.ImageMapType} mapType The map type to include on the map.
  * @return {google.maps.Map} A map instance with the map type rendered.
  */
-trendy.App.prototype.createMap = function(mapType) {
+cloudfrequency.App.prototype.createMap = function(mapType) {
   var mapOptions = {
     backgroundColor: '#000000',
-    center: trendy.App.DEFAULT_CENTER,
+    center: cloudfrequency.App.DEFAULT_CENTER,
     //disableDefaultUI: true,
     streetViewControl: false,
     mapTypeControl: false,
     maxZoom: 10,
-    zoom: trendy.App.DEFAULT_ZOOM
+    zoom: cloudfrequency.App.DEFAULT_ZOOM
   };
   var mapEl = $('.map').get(0);
   var map = new google.maps.Map(mapEl, mapOptions);
-  //map.setOptions({styles: trendy.App.BLACK_BASE_MAP_STYLES});
+  //map.setOptions({styles: cloudfrequency.App.BLACK_BASE_MAP_STYLES});
   map.overlayMapTypes.push(mapType);
 
 
@@ -218,7 +214,7 @@ trendy.App.prototype.createMap = function(mapType) {
  * @param {Array<string>} polygonIds The IDs of the polygons to show on the map.
  *     For example ['poland', 'moldova'].
  */
-trendy.App.prototype.addPolygons = function(polygonIds) {
+cloudfrequency.App.prototype.addPolygons = function(polygonIds) {
   polygonIds.forEach((function(polygonId) {
     this.map.data.loadGeoJson('static/polygons/' + polygonId + '.json');
   }).bind(this));
@@ -238,7 +234,7 @@ trendy.App.prototype.addPolygons = function(polygonIds) {
  * @param {Object} event The event object, which contains details about the
  *     polygon clicked.
  */
-trendy.App.prototype.handlePolygonClick = function(event) {
+cloudfrequency.App.prototype.handlePolygonClick = function(event) {
   this.clear();
   var feature = event.feature;
 
@@ -262,7 +258,7 @@ trendy.App.prototype.handlePolygonClick = function(event) {
 
 
 /** Clears the details panel and selected polygon. */
-trendy.App.prototype.clear = function() {
+cloudfrequency.App.prototype.clear = function() {
   $('.panel .title').empty().hide();
   $('.panel .wiki-url').hide().attr('href', '');
   $('.panel .chart').empty().hide();
@@ -273,7 +269,7 @@ trendy.App.prototype.clear = function() {
 
 
 /** Hides the details panel. */
-trendy.App.prototype.hidePanel = function() {
+cloudfrequency.App.prototype.hidePanel = function() {
   $('.panel').hide();
   this.clear();
 };
@@ -284,7 +280,7 @@ trendy.App.prototype.hidePanel = function() {
  * @param {Array<Array<number>>} timeseries The timeseries data
  *     to plot in the chart.
  */
-trendy.App.prototype.showChart = function(timeseries) {
+cloudfrequency.App.prototype.showChart = function(timeseries) {
   timeseries.forEach(function(point) {
     point[0] = new Date(parseInt(point[0], 10));
   });
@@ -322,10 +318,10 @@ trendy.App.prototype.showChart = function(timeseries) {
  * @return {google.maps.ImageMapType} A Google Maps ImageMapType object for the
  *     EE map with the given ID and token.
  */
-trendy.App.getEeMapType = function(eeMapId, eeToken) {
+cloudfrequency.App.getEeMapType = function(eeMapId, eeToken) {
   var eeMapOptions = {
     getTileUrl: function(tile, zoom) {
-      var url = trendy.App.EE_URL + '/map/';
+      var url = cloudfrequency.App.EE_URL + '/map/';
       url += [eeMapId, zoom, tile.x, tile.y].join('/');
       url += '?token=' + eeToken;
       return url;
@@ -338,22 +334,22 @@ trendy.App.getEeMapType = function(eeMapId, eeToken) {
 
 
 /** @type {string} The Earth Engine API URL. */
-trendy.App.EE_URL = 'https://earthengine.googleapis.com';
+cloudfrequency.App.EE_URL = 'https://earthengine.googleapis.com';
 
 
 /** @type {number} The default zoom level for the map. */
-trendy.App.DEFAULT_ZOOM = 4;
+cloudfrequency.App.DEFAULT_ZOOM = 4;
 
 
 /** @type {Object} The default center of the map. */
-trendy.App.DEFAULT_CENTER = {lng: 5, lat: 50};
+cloudfrequency.App.DEFAULT_CENTER = {lng: 5, lat: 50};
 
 
 /**
  * @type {Array} An array of Google Map styles. See:
  *     https://developers.google.com/maps/documentation/javascript/styling
  */
-trendy.App.BLACK_BASE_MAP_STYLES = [
+cloudfrequency.App.BLACK_BASE_MAP_STYLES = [
   {stylers: [{lightness: -100}]},
   {
     featureType: 'road',

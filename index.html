@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Cloud frequency</title>
+    <title>Cloud frequency map</title>
     <meta charset="utf-8">
 
     <!-- Support for browsers on mobile phones. -->
@@ -28,7 +28,7 @@
   <body>
 
     <!-- The DOM of our application. -->
-    <div class="trendy">
+    <div class="cloudfrequency">
       <input id="pac-input" class="controls" type="text" placeholder="Search..."> 
       <!-- A container which the Maps API will populate with a map. -->
       <div class="map"></div>
@@ -75,7 +75,7 @@
 
     <!-- Boot our JavaScript once the body has loaded. -->
     <script>
-      trendy.boot(
+      cloudfrequency.boot(
           '{{ eeMapId | safe }}',
           '{{ eeToken | safe }}',
           '{{ serializedPolygonIds | safe }}');

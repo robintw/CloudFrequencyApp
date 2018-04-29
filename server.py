@@ -79,11 +79,11 @@ cloudiness = None
 
 
 class MainHandler(webapp2.RequestHandler):
-  """A servlet to handle requests to load the main Trendy Lights web page."""
+  """A servlet to handle requests to load the main Cloud Frequency web page."""
 
   def get(self, path=''):
     """Returns the main web page, populated with EE map and polygon info."""
-    mapid = GetTrendyMapId()
+    mapid = GetCloudFrequencyMapID()
     template_values = {
         'eeMapId': mapid['mapid'],
         'eeToken': mapid['token'],
@@ -131,10 +131,10 @@ app = webapp2.WSGIApplication([
 ###############################################################################
 
 
-def GetTrendyMapId():
+def GetCloudFrequencyMapID():
   global cloudiness
 
-  """Returns the MapID for the night-time lights trend map."""
+  """Returns the MapID for the cloud frequency map."""
 
   startdate="2017-01-01"
   stopdate="2017-12-31"
@@ -157,8 +157,7 @@ def GetValueAtPoint(lat, lon):
   global cloudiness
 
   g = ee.Geometry.Point([float(lon), float(lat)])
-  #g = ee.Geometry.Point([-122.22599, 37.17605])
-  print(g)
+
   res = cloudiness.reduceRegion(ee.Reducer.mean(), g, REDUCTION_SCALE_METERS)
 
   return json.dumps(res.getInfo())
@@ -189,62 +188,6 @@ def GetTimeSeriesAtPoint(lat, lon):
 
     return ee.Chart.image.series(result, geometry, ee.Reducer.mean(), 1000)
 
-
-def GetPolygonTimeSeries(polygon_id):
-  """Returns details about the polygon with the passed-in ID."""
-  details = memcache.get(polygon_id)
-
-  # If we've cached details for this polygon, return them.
-  if details is not None:
-    return details
-
-  details = {'wikiUrl': WIKI_URL + polygon_id.replace('-', '%20')}
-
-  try:
-    details['timeSeries'] = ComputePolygonTimeSeries(polygon_id)
-    # Store the results in memcache.
-    memcache.add(polygon_id, json.dumps(details), MEMCACHE_EXPIRATION)
-  except ee.EEException as e:
-    # Handle exceptions from the EE client library.
-    details['error'] = str(e)
-
-  # Send the results to the browser.
-  return json.dumps(details)
-
-
-def ComputePolygonTimeSeries(polygon_id):
-  """Returns a series of brightness over time for the polygon."""
-  collection = ee.ImageCollection(IMAGE_COLLECTION_ID)
-  collection = collection.select('stable_lights').sort('system:time_start')
-  feature = GetFeature(polygon_id)
-
-  # Compute the mean brightness in the region in each image.
-  def ComputeMean(img):
-    reduction = img.reduceRegion(
-        ee.Reducer.mean(), feature.geometry(), REDUCTION_SCALE_METERS)
-    return ee.Feature(None, {
-        'stable_lights': reduction.get('stable_lights'),
-        'system:time_start': img.get('system:time_start')
-    })
-  chart_data = collection.map(ComputeMean).getInfo()
-
-  # Extract the results as a list of lists.
-  def ExtractMean(feature):
-    return [
-        feature['properties']['system:time_start'],
-        feature['properties']['stable_lights']
-    ]
-  return map(ExtractMean, chart_data['features'])
-
-
-def GetFeature(polygon_id):
-  """Returns an ee.Feature for the polygon with the given ID."""
-  # Note: The polygon IDs are read from the filesystem in the initialization
-  # section below. "sample-id" corresponds to "static/polygons/sample-id.json".
-  path = POLYGON_PATH + polygon_id + '.json'
-  path = os.path.join(os.path.split(__file__)[0], path)
-  with open(path) as f:
-    return ee.Feature(json.load(f))
 
 
 ###############################################################################
